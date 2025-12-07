@@ -1,0 +1,20 @@
+[LISTS]
+SERVER_LIST = [
+    [
+        "debian13",
+        "192.168.0.107:8090",
+    ],
+    [
+        "ubuntu",
+        "192.168.0.104:8090",
+    ],
+]
+PC_LIST = [
+    [
+        "pc",
+        "192.168.0.105:8090",
+    ],
+]
+
+[PWD]
+refresh_password = "nmtxdix1145"
