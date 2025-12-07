@@ -12,6 +12,7 @@ import socket
 api_addr = "http://api.wsmdn.top"
 port = "5000"
 pcid = "pc"
+password = ""
 # 要开启剪贴板这个危险服务吗？
 copy = False
 # 要开启活动窗口这个危险服务吗？
@@ -25,7 +26,7 @@ def send_local_ip():
     finally:
         s.close()
     return ip
-requests.get(api_addr +f"/change?type=pc&id={pcid}&ip={send_local_ip()}:{port}&pwd=nmtxdix1145")
+requests.get(api_addr +f"/change?type=pc&id={pcid}&ip={send_local_ip()}:{port}&pwd={password}")
 
 CORS(app, origins=["http://localhost:8080", "http://192.168.0.107:8080" ,"http://192.168.0.105:8080","http://192.168.0.106:8080","http://192.168.0.105:8080","https://ern.wsmdn.top"])
 @app.route("/status")

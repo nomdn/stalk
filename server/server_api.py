@@ -10,6 +10,7 @@ app = Flask(__name__)
 api_addr = "http://localhost:8090"
 port = "8090"
 server_id = "ubuntu"
+password = ""
 def send_local_ip():
 
     try:
@@ -19,7 +20,7 @@ def send_local_ip():
     finally:
         s.close()
     return ip
-requests.get(api_addr +f"/change?type=pc&id={server_id}&ip={send_local_ip()}:{port}&pwd=nmtxdix1145")
+requests.get(api_addr +f"/change?type=pc&id={server_id}&ip={send_local_ip()}:{port}&pwd={password}")
 
 CORS(app, origins=["http://localhost:8080", "http://192.168.0.107:8080" ,"http://192.168.0.105:8080","http://192.168.0.106:8080","http://192.168.0.105:8080","https://ern.wsmdn.top"])
 @app.route("/status")
