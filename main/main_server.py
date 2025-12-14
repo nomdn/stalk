@@ -8,40 +8,46 @@ import requests
 import tomllib
 import traceback
 
+
 with open("config.toml", "rb") as f:
     config = tomllib.load(f)
 
 # 格式：[[服务器的名字,服务器ip:port（局域网也行）]]
-
+get_status_data = {"server":{},"pc":{}}
 PC_LIST = config["LISTS"]["PC_LIST"]
 SERVER_LIST = config["LISTS"]["SERVER_LIST"]
 refresh_password = config["PWD"]["refresh_password"]
-
+server_type = config["CONFIG"]["type"]
 app = flask.Flask(__name__)
 CORS(app, origins=["http://localhost:8080", "http://192.168.0.107:8080" ,"http://192.168.0.105:8080","http://192.168.0.106:8080","http://192.168.0.105:8080","https://ern.wsmdn.top"])
 @app.route("/get")
 def info():
     type = request.args.get("type")
     id = request.args.get("id")
-    if type=="pc":
-        for i in PC_LIST:
-            if id == i[0]:
-                pc_ip=i[1]
-                break
 
-        else:
-            return '404 Not Found'
-        result = requests.get("http://"+pc_ip+"/status").json()
-        return jsonify(result)
-    elif type=="server":
-        for i in SERVER_LIST:
-            if id == i[0]:
-                server_ip=i[1]
-                break
-        else:
-            return '404 Not Found'
-        result = requests.get("http://"+server_ip+"/status").json()
-        return jsonify(result)
+
+    if server_type == "True":
+        if type=="pc":
+            for i in PC_LIST:
+                if id == i[0]:
+                    pc_ip=i[1]
+                    break
+
+            else:
+                return '404 Not Found'
+            result = requests.get("http://"+pc_ip+"/status").json()
+            return jsonify(result)
+        elif type=="server":
+            for i in SERVER_LIST:
+                if id == i[0]:
+                    server_ip=i[1]
+                    break
+            else:
+                return '404 Not Found'
+            result = requests.get("http://"+server_ip+"/status").json()
+            return jsonify(result)
+    elif server_type == "False":
+        return jsonify(get_status_data[type][id])
 @app.route("/change")
 def change_ips():
     id = request.args.get("id")
@@ -56,7 +62,7 @@ def change_ips():
                         PC_LIST.remove(item)
                         break
                 PC_LIST.append([id,new_ip])
-                print(PC_LIST)
+                app.logger.info(PC_LIST)
                 config["LISTS"]["PC_LIST"] = PC_LIST
                 with open("config.toml", "wb") as f:
                     tomli_w.dump(config, f)
@@ -67,7 +73,7 @@ def change_ips():
                         SERVER_LIST.remove(item)
                         break
                 SERVER_LIST.append([id, new_ip])
-                print(SERVER_LIST)
+                app.logger.info(SERVER_LIST)
                 config["LISTS"]["SERVER_LIST"] = SERVER_LIST
                 with open("config.toml", "wb") as f:
                     tomli_w.dump(config, f)
@@ -77,6 +83,20 @@ def change_ips():
             return str(e)
     else:
         return '403'
+@app.route("/post", methods=['POST'])
+def get_status():
+    data = request.json
+    headers = request.headers
+
+    if headers["password"] == config["PWD"]["refresh_password"]:
+        server_id = headers["id"]
+        type = headers["type"]
+        get_status_data[type][server_id]=data
+        return jsonify({"status": "success"})
+    else:
+        return "403"
+
+
 
 
 if __name__ == "__main__":

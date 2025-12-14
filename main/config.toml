@@ -18,3 +18,6 @@ PC_LIST = [
 
 [PWD]
 refresh_password = ""
+[CONFIG]
+# 正向填True 反向填False
+type = "False"

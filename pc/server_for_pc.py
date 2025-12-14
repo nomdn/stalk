@@ -1,5 +1,5 @@
 # wsgi.py
-from pc.pc_api import app  # 假设你的 Flask 实例叫 app，在 main_server.py 中
+from pc_api import app  # 假设你的 Flask 实例叫 app，在 main_server.py 中
 
 if __name__ == "__main__":
     from waitress import serve

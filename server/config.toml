@@ -1,0 +1,43 @@
+[GLOBAL]
+# 主api的地址，能访问就行
+# 示例: http://localhost:8090
+# 注意！"http://",端口要加，末尾的/不用加
+api_addr = "http://localhost:8090"
+# 主api的密码
+password = ""
+# 该服务器的唯一标识符（顾名思义，必须唯一）
+server_id = "ubuntu"
+[CONFIG]
+# 主api访问你？
+enable = ""
+# 主api的地址，能访问就行
+# 示例: http://localhost:8090
+# 注意！"http://",端口要加，末尾的/不用加
+api_addr = "http://localhost:8090"
+# 该服务器的监听端口(必须是远端能访问的，像是frp隧道，内网端口和外网端口不一样的话，必须填外网端口)
+# http的默认端口（80）https的默认端口（443）
+# !!!注意此配置项只是向远端发送地址用，不能改变监听地址
+port = "8090"
+
+# 发送的是公网地址还是内网地址?
+# True是公网，False是内网
+public_network = "False"
+# 希望发送ipv6就填ipv6,希望发送ipv4就填ipv4
+ip = ""
+# 如果该服务端配置了ddns，或者是frp，请填写此项，此项会覆盖上一个配置项
+domain_enable = "False"
+# 此项填该api的域名+端口(如果有),没有就不填
+domain =""
+# 主api的密码
+password = ""
+[POST_CONFIG]
+# 你访问主api？
+enable = "True"
+# 主api的地址，能访问就行
+# 示例: http://localhost:8090
+# 注意！"http://",端口要加，末尾的/不用加
+api_addr = "http://localhost:8090"
+# 主api的密码
+password = ""
+# 向主api报告信息的间隔时间（单位秒）
+cooldown =2
