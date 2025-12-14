@@ -20,7 +20,7 @@ CONFIG = config["CONFIG"]
 POST_CONFIG = config.get("POST_CONFIG", {})
 
 # 从配置中读取（注意：你的配置里 server_id 在 [CONFIG] 下！）
-server_id = CONFIG["server_id"]
+server_id = GLOBAL["server_id"]
 password = GLOBAL["password"]
 api_addr = GLOBAL["api_addr"]
 
@@ -42,13 +42,27 @@ copy_enabled = str(GLOBAL.get("copy", "False")).lower() == "true"
 active_enabled = str(GLOBAL.get("active", "False")).lower() == "true"
 
 # =============== 工具函数 ===============
-def get_local_ip():
+async def send_local_ip():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(('8.8.8.8', 80))
         ip = s.getsockname()[0]
     finally:
         s.close()
+    return ip
+async def send_public_ip(type):
+    ip=""
+    async with httpx.AsyncClient(timeout=10.0) as http_client:
+        try:
+            if type=="ipv6":
+                ip = await http_client.get("https://api6.ipify.org/").text.strip()
+                ip = "["+ip+"]"
+            elif type=="ipv4":
+                ip = await http_client.get('https://checkip.amazonaws.com').text.strip()
+
+        except:
+            ip = ""
+
     return ip
 
 # =============== Windows 特有功能（必须在 Windows 上运行）===============
@@ -156,6 +170,27 @@ async def post_status_background():
             print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Failed to post PC status: {e}")
 
         await asyncio.sleep(cooldown)
+async def synchronize():
+    api_addr = config["GLOBAL"]["api_addr"]
+    server_id = config["GLOBAL"]["server_id"]
+    port = config["CONFIG"]["port"]
+    password = config["GLOBAL"]["password"]
+    async with httpx.AsyncClient(timeout=10.0) as http_client:
+        try:
+            if config["CONFIG"]["public_network"] == "True":
+                if config["CONFIG"]["domain_enable"] == "True":
+                    await http_client.get(api_addr + f"/change?type=pc&id={server_id}&ip={config["CONFIG"]["domain"]}&pwd={password}")
+                else:
+                    ip_type = config["CONFIG"]["ip"]
+                    await http_client.get(api_addr +f"/change?type=pc&id={server_id}&ip={await send_public_ip(ip_type)}:{port}&pwd={password}")
+            elif config["CONFIG"]["public_network"] == "False":
+                if config["CONFIG"]["domain_enable"] == "True":
+                    await http_client.get(api_addr + f"/change?type=pc&id={server_id}&ip={config["CONFIG"]["domain"]}&pwd={password}")
+                else:
+                    await http_client.get(api_addr + f"/change?type=pc&id={server_id}&ip={await send_local_ip()}:{port}&pwd={password}")
+        except Exception as e:
+            print(f"ERROR:同步失败！{e}")
+    return "OK"
 
 # =============== 启动入口 ===============
 if __name__ == '__main__':
@@ -167,6 +202,8 @@ if __name__ == '__main__':
 
     if config_enable:
         port = int(CONFIG.get("port", 8090))
+        asyncio.run(synchronize())
+
         print(f"Starting PC API server on http://0.0.0.0:{int(port)}/status")
         uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
 
