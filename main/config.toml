@@ -21,3 +21,4 @@ refresh_password = ""
 [CONFIG]
 # 正向填True 反向填False
 type = "False"
+port="8099"

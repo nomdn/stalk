@@ -8,7 +8,7 @@ server_id = "pc"
 # 注意！"http://",端口要加，末尾的/不用加
 api_addr = "https://api.wsmdn.top"
 # 主api的密码
-password = ""
+password = "nmtxdys1145"
 [CONFIG]
 # 主api访问你？
 enable = "True"

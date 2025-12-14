@@ -1,9 +1,9 @@
+import asyncio
 from os import abort
-
-import flask
 import tomli_w
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+import uvicorn
+from fastapi import FastAPI, Query, HTTPException, Request, status, Header, Body
+from fastapi.middleware.cors import CORSMiddleware
 import requests
 import tomllib
 import traceback
@@ -18,12 +18,28 @@ PC_LIST = config["LISTS"]["PC_LIST"]
 SERVER_LIST = config["LISTS"]["SERVER_LIST"]
 refresh_password = config["PWD"]["refresh_password"]
 server_type = config["CONFIG"]["type"]
-app = flask.Flask(__name__)
-CORS(app, origins=["http://localhost:8080", "http://192.168.0.107:8080" ,"http://192.168.0.105:8080","http://192.168.0.106:8080","http://192.168.0.105:8080","https://ern.wsmdn.top"])
-@app.route("/get")
-def info():
-    type = request.args.get("type")
-    id = request.args.get("id")
+app = FastAPI(title="视奸服务器-主api")
+
+
+# CORS 设置（与原 Flask 一致）
+origins = [
+    "http://localhost:8080",
+    "http://192.168.0.107:8080",
+    "http://192.168.0.105:8080",
+    "http://192.168.0.106:8080",
+    "https://ern.wsmdn.top"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+@app.get("/get")
+async def info(id:  str = Query(...),
+               type:    str = Query(...)):
 
 
     if server_type == "True":
@@ -34,26 +50,25 @@ def info():
                     break
 
             else:
-                return '404 Not Found'
+                raise HTTPException(status_code=404,detail="Not Found")
             result = requests.get("http://"+pc_ip+"/status").json()
-            return jsonify(result)
+            return result
         elif type=="server":
             for i in SERVER_LIST:
                 if id == i[0]:
                     server_ip=i[1]
                     break
             else:
-                return '404 Not Found'
+                raise HTTPException(status_code=404,detail="Not Found")
             result = requests.get("http://"+server_ip+"/status").json()
-            return jsonify(result)
+            return result
     elif server_type == "False":
-        return jsonify(get_status_data[type][id])
-@app.route("/change")
-def change_ips():
-    id = request.args.get("id")
-    new_ip = request.args.get("ip")
-    type= request.args.get("type")
-    password = request.args.get("pwd")
+        return get_status_data[type][id]
+@app.get("/change")
+async def change_ips(id:  str = Query(...),
+               type:    str = Query(...),
+               new_ip:  str =  Query(...),
+               password:    str = Query(None)):
     if password == refresh_password:
         try:
             if type=="pc":
@@ -62,7 +77,7 @@ def change_ips():
                         PC_LIST.remove(item)
                         break
                 PC_LIST.append([id,new_ip])
-                app.logger.info(PC_LIST)
+
                 config["LISTS"]["PC_LIST"] = PC_LIST
                 with open("config.toml", "wb") as f:
                     tomli_w.dump(config, f)
@@ -73,7 +88,7 @@ def change_ips():
                         SERVER_LIST.remove(item)
                         break
                 SERVER_LIST.append([id, new_ip])
-                app.logger.info(SERVER_LIST)
+
                 config["LISTS"]["SERVER_LIST"] = SERVER_LIST
                 with open("config.toml", "wb") as f:
                     tomli_w.dump(config, f)
@@ -83,22 +98,24 @@ def change_ips():
             return str(e)
     else:
         return '403'
-@app.route("/post", methods=['POST'])
-def get_status():
-    data = request.json
-    headers = request.headers
+@app.post("/post")
+async def get_status(password: str = Header("", alias="password"),
+    server_id: str = Header(..., alias="id"),
+    type_: str = Header(..., alias="type"),
+    data: dict = Body(...)):
+    print(">>> RECEIVED password:", repr(password))
+    if password == config["PWD"]["refresh_password"]:
 
-    if headers["password"] == config["PWD"]["refresh_password"]:
-        server_id = headers["id"]
-        type = headers["type"]
+        type = type_
         get_status_data[type][server_id]=data
-        return jsonify({"status": "success"})
+        return {"status": "success"}
     else:
-        return "403"
+        raise HTTPException(status_code=403,detail="Forbidden")
 
 
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0",port=8090)
+    port = config["CONFIG"]["port"]
+    uvicorn.run("main_server:app", host="0.0.0.0", port=int(port), log_level="info")
 
