@@ -62,15 +62,15 @@ async def synchronize():
     try:
         if config["CONFIG"]["public_network"] == "True":
             if config["CONFIG"]["domain_enable"] == "True":
-                await http_client.get(api_addr + f"/change?type=pc&id={server_id}&ip={config["CONFIG"]["domain"]}&pwd={password}")
+                await http_client.get(api_addr + f"/change?type=server&id={server_id}&ip={config["CONFIG"]["domain"]}&pwd={password}")
             else:
                 ip_type = config["CONFIG"]["ip"]
-                await http_client.get(api_addr +f"/change?type=pc&id={server_id}&ip={await send_public_ip(ip_type)}:{port}&pwd={password}")
+                await http_client.get(api_addr +f"/change?type=server&id={server_id}&ip={await send_public_ip(ip_type)}:{port}&pwd={password}")
         elif config["CONFIG"]["public_network"] == "False":
             if config["CONFIG"]["domain_enable"] == "True":
-                await http_client.get(api_addr + f"/change?type=pc&id={server_id}&ip={config["CONFIG"]["domain"]}&pwd={password}")
+                await http_client.get(api_addr + f"/change?type=server&id={server_id}&ip={config["CONFIG"]["domain"]}&pwd={password}")
             else:
-                await http_client.get(api_addr + f"/change?type=pc&id={server_id}&ip={await send_local_ip()}:{port}&pwd={password}")
+                await http_client.get(api_addr + f"/change?type=server&id={server_id}&ip={await send_local_ip()}:{port}&pwd={password}")
     except Exception as e:
         return f"ERROR:同步失败！{e}"
     return "OK"
