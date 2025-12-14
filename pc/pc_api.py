@@ -167,7 +167,7 @@ if __name__ == '__main__':
 
     if config_enable:
         port = int(CONFIG.get("port", 8090))
-        print(f"Starting PC API server on http://0.0.0.0:{port}/status")
+        print(f"Starting PC API server on http://0.0.0.0:{int(port)}/status")
         uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
 
     elif post_enable:

@@ -211,7 +211,8 @@ async def post_status():
 
 if __name__ == '__main__':
     if config["CONFIG"]["enable"] == "True":
+        port = config["CONFIG"]["port"]
         asyncio.run(synchronize())
-        uvicorn.run("server_api:app", host="127.0.0.1", port=8090, log_level="info")
+        uvicorn.run("server_api:app", host="0.0.0.0", port=int(port), log_level="info")
     elif config["POST_CONFIG"]["enable"] == "True":
         asyncio.run(post_status())
